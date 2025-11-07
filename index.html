@@ -3,7 +3,8 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Password Generator</title>
+  <title>Password & Username Generator</title>
+  <!-- BACKUP: Original password-only version saved. To revert, remove username generator section and restore original title -->
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='45' fill='%230b66c3'/><circle cx='50' cy='50' r='40' fill='%23f6f8fa'/><text x='50' y='65' font-size='50' font-weight='bold' text-anchor='middle' fill='%230b66c3'>🔐</text></svg>" type="image/svg+xml">
   <style>
     body {
@@ -153,6 +154,23 @@
     .history-copy-btn:hover {
       background: #0952a0;
     }
+    .tab-btn {
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .tab-btn:hover {
+      opacity: 0.8;
+    }
+    .tab-active {
+      font-weight: 700;
+    }
+    .tab-content {
+      animation: fadeIn 0.2s ease-in;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0.8; }
+      to { opacity: 1; }
+    }
   </style>
 </head>
 <body>
@@ -169,6 +187,14 @@
         </div>
       </div>
 
+      <!-- Tab Navigation -->
+      <div style="display:flex; gap:8px; margin-bottom:16px; border-bottom:2px solid #f0f0f0; padding-bottom:0;">
+        <button id="passwordTab" class="tab-btn tab-active" style="padding:12px 16px; border:none; background:none; cursor:pointer; border-bottom:3px solid #0b66c3; color:#0b66c3; font-weight:600; font-size:16px;" data-i18n="passwordTab">Password</button>
+        <button id="usernameTab" class="tab-btn" style="padding:12px 16px; border:none; background:none; cursor:pointer; border-bottom:3px solid transparent; color:#666; font-weight:600; font-size:16px;" data-i18n="usernameTab">Username</button>
+      </div>
+
+      <!-- Password Generator Tab -->
+      <div id="passwordTabContent" class="tab-content">
     <div style="display:grid; grid-template-columns: 1fr 200px; gap:12px; align-items:flex-start; min-width: 0;">
       <textarea id="passwordField" readonly aria-label="Generated password" style="min-width: 0; width: 100%; padding: 12px 14px; font-size: 18px; border-radius: 8px; border: 1px solid #d6dbe0; box-sizing: border-box; word-break: break-all; overflow-wrap: break-word; white-space: normal; resize: none; line-height: 1.5; font-family: monospace;"></textarea>
       <div style="display:flex; gap:8px; flex-shrink: 0;">
@@ -235,19 +261,76 @@
         <span class="hint" data-i18n="minMax">Min length 5 — Max 100</span>
       </div>
     </div>
+      </div> <!-- End password tab content -->
 
-    <div class="footer">
-      <div class="strength-container">
-        <div id="strengthBar" class="strength-bar"></div>
+      <!-- Username Generator Tab -->
+      <div id="usernameTabContent" class="tab-content" style="display:none;">
+    <div style="display:grid; grid-template-columns: 1fr 200px; gap:12px; align-items:flex-start; min-width: 0;">
+      <textarea id="usernameField" readonly aria-label="Generated username" style="min-width: 0; width: 100%; padding: 12px 14px; font-size: 18px; border-radius: 8px; border: 1px solid #d6dbe0; box-sizing: border-box; word-break: break-all; overflow-wrap: break-word; white-space: normal; resize: none; line-height: 1.5; font-family: monospace; height:60px;"></textarea>
+      <div style="display:flex; gap:8px; flex-shrink: 0;">
+        <button id="refreshUsernameBtn" class="btn btn-refresh" title="Generate new username" data-i18n="refresh">⟲ Refresh</button>
+        <button id="copyUsernameBtn" class="btn btn-copy" title="Copy username to clipboard" data-i18n="copyUsername">Copy</button>
       </div>
-      <div id="strengthLabel" class="strength-label">Strength: —</div>
+    </div>
+
+    <div class="controls">
+      <div class="row">
+        <div style="flex:1;">
+          <div class="small" style="display:flex; gap:12px; align-items:center; display:none;">
+            <label for="usernameLengthInput" data-i18n="usernameLength">Username length:</label>
+            <input id="usernameLengthInput" type="number" min="3" max="50" value="50" style="width:60px; padding:6px 8px; border:1px solid #d6dbe0; border-radius:4px; font-size:14px;" />
+          </div>
+          <input id="usernameLengthRange" type="range" min="3" max="50" value="50" style="display:none;" />
+        </div>
+      </div>
+
+      <!-- Gender selection - only visible in Spanish -->
+      <div id="genderSelection" class="row" style="display:none;">
+        <div style="flex:1;">
+          <div class="small" style="font-weight:bold; font-size:14px; margin-bottom:8px;" data-i18n="genderSelection">Género:</div>
+          <div class="checkboxes" style="flex-direction:row; gap:16px;">
+            <label><input id="genderMasculine" type="radio" name="gender" value="masculine" checked /> <span data-i18n="masculine">Masculino</span></label>
+            <label><input id="genderFeminine" type="radio" name="gender" value="feminine" /> <span data-i18n="feminine">Femenino</span></label>
+          </div>
+        </div>
+      </div>
+
+      <div class="row" style="margin-top:20px;">
+        <div style="flex:1;">
+          <div class="small" style="font-weight:bold; font-size:14px; margin-bottom:8px;" data-i18n="usernameStyle">Username style:</div>
+          <div class="checkboxes" style="flex-direction:column; gap:8px;">
+            <label><input id="usernameStyleSimple" type="radio" name="username-style" value="simple" checked /> <span data-i18n="styleSimple">Simple (adjective + noun)</span></label>
+            <label><input id="usernameStyleNumber" type="radio" name="username-style" value="number" /> <span data-i18n="styleNumber">With numbers</span></label>
+            <label><input id="usernameStyleUnderscore" type="radio" name="username-style" value="underscore" /> <span data-i18n="styleUnderscore">With underscores</span></label>
+            <label><input id="usernameStyleProfessional" type="radio" name="username-style" value="professional" /> <span data-i18n="styleProfessional">Professional (lowercase, numbers)</span></label>
+          </div>
+        </div>
+      </div>
+    </div>
 
       <div class="history-section">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+          <div class="history-title" data-i18n="usernameHistory">Username History (Last 5)</div>
+          <button id="clearUsernameHistoryBtn" class="btn btn-refresh" style="padding:6px 10px; font-size:12px;" data-i18n="clear">Clear</button>
+        </div>
+        <div id="usernameHistoryList" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(150px, 1fr)); gap:8px;"></div>
+      </div>
+      </div> <!-- End username tab content -->
+
+    <div class="footer">
+      <div id="passwordFooter" class="strength-container">
+        <div id="strengthBar" class="strength-bar"></div>
+      </div>
+      <div id="strengthLabelContainer">
+        <div id="strengthLabel" class="strength-label">Strength: —</div>
+      </div>
+
+      <div id="passwordHistorySection" class="history-section">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
           <div class="history-title" data-i18n="history">Password History (Last 5)</div>
           <button id="clearHistoryBtn" class="btn btn-refresh" style="padding:6px 10px; font-size:12px;" data-i18n="clear">Clear</button>
         </div>
-        <div id="historyList" class="history-list"></div>
+        <div id="historyList" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(150px, 1fr)); gap:8px;"></div>
       </div>
     </div>
   </div>
@@ -259,6 +342,63 @@
     const NUMS  = "0123456789";
     const SIMPLE_SYM = "!@#$%&*?";
     const COMPLEX_SYM = "~^()_-+=[]{}|;:'\",.<>/\\`€£¥•";
+
+    // Username word lists by language
+    const wordsByLanguage = {
+      en: {
+        adjectives: [
+          "happy", "sunny", "bright", "swift", "clever", "bold", "calm", "eager",
+          "fresh", "gentle", "grand", "quick", "quiet", "rare", "sharp", "smart",
+          "smooth", "solid", "sweet", "tiny", "vivid", "warm", "wise", "blue",
+          "green", "brave", "dark", "fair", "fine", "keen", "neat", "real",
+          "dangerous", "frightful", "delicious", "mysterious", "inspiring", "colorless",
+          "worthless", "pointless", "hospitable", "affordable", "incredible", "profitable",
+          "predictive", "supportive", "responsive", "aggressive", "charitable", "dependable",
+          "respectful", "trustworthy"
+        ],
+        nouns: [
+          "bear", "bird", "cat", "deer", "dog", "eagle", "fish", "fox",
+          "goat", "hawk", "horse", "lion", "mouse", "otter", "panda", "penguin",
+          "rabbit", "raven", "seal", "shark", "snake", "spider", "swan", "tiger",
+          "wolf", "zebra", "ant", "bee", "bug", "owl", "ape", "elk", "volcanoes",
+          "backpacks", "chemistry", "horsepower", "journalist", "basketball", "apartment",
+          "blueprints", "chocolate", "motorcycle", "bookstores", "earthquake", "playground",
+          "television", "restaurant", "spaceships", "frameworks", "tournament", "cellphones", "greenhouse"
+        ]
+      },
+      es: {
+        adjectivesMasculine: [
+          "feliz", "soleado", "brillante", "rapido", "inteligente", "audaz", "tranquilo", "ansioso",
+          "fresco", "amable", "grandioso", "silencioso", "raro", "agudo", "suave", "solido",
+          "dulce", "minusculo", "vivido", "calido", "sabio", "azul", "verde", "valiente",
+          "oscuro", "justo", "fino", "pulcro", "verdadero", "peligroso", "espantoso",
+          "delicioso", "misterioso", "inspirador", "incoloro", "inutil", "hospitalario",
+          "asequible", "increible", "rentable"
+        ],
+        adjectivesFeminine: [
+          "feliz", "soleada", "brillante", "rapida", "inteligente", "audaz", "tranquila", "ansiosa",
+          "fresca", "amable", "grandiosa", "silenciosa", "rara", "aguda", "suave", "solida",
+          "dulce", "minuscula", "vivida", "calida", "sabia", "azul", "verde", "valiente",
+          "oscura", "justa", "fina", "pulcra", "verdadera", "peligrosa", "espantosa",
+          "deliciosa", "misteriosa", "inspiradora", "incolora", "inutil", "hospitalaria",
+          "asequible", "increible", "rentable"
+        ],
+        nounsMasculine: [
+          "oso", "pajaro", "gato", "ciervo", "perro", "aguila", "pez", "zorro",
+          "caballo", "leon", "raton", "panda", "pinguino", "conejo", "cuervo", "tiburon",
+          "tigre", "lobo", "insecto", "buho", "mono", "alce", "apartamento", "chocolate",
+          "baloncesto", "terremoto", "patio", "recreo", "torneo", "invernadero"
+        ],
+        nounsFeminine: [
+          "osa", "pajara", "gata", "cierva", "perra", "aguila", "pez", "zorra",
+          "cabra", "halcon", "yegua", "leona", "ratona", "nutria", "panda", "pinguina",
+          "coneja", "cuerva", "foca", "serpiente", "arana", "cisne", "tigresa",
+          "loba", "cebra", "hormiga", "abeja", "insecta", "buha", "mona", "alce",
+          "quimica", "mochila", "potencia", "periodista", "motocicleta", "libreria",
+          "television", "nave", "marca", "telefona"
+        ]
+      }
+    };
 
     // Translations
     const translations = {
@@ -286,7 +426,21 @@
         fair: "Fair",
         medium: "Medium",
         strong: "Strong",
-        veryStrong: "Very strong"
+        veryStrong: "Very strong",
+        usernameTab: "Username",
+        passwordTab: "Password",
+        usernameLength: "Username length:",
+        usernameStyle: "Username style:",
+        styleSimple: "Simple (adjective + noun)",
+        styleNumber: "With numbers",
+        styleUnderscore: "With underscores",
+        styleProfessional: "Professional",
+        generateUsername: "Generate Username",
+        copyUsername: "Copy username",
+        usernameHistory: "Username History (Last 5)",
+        genderSelection: "Gender:",
+        masculine: "Masculine",
+        feminine: "Feminine"
       },
       es: {
         title: "Generador de contraseña",
@@ -312,7 +466,21 @@
         fair: "Aceptable",
         medium: "Media",
         strong: "Fuerte",
-        veryStrong: "Muy fuerte"
+        veryStrong: "Muy fuerte",
+        usernameTab: "Nombre de usuario",
+        passwordTab: "Contraseña",
+        usernameLength: "Longitud del nombre de usuario:",
+        usernameStyle: "Estilo de nombre de usuario:",
+        styleSimple: "Simple (adjetivo + sustantivo)",
+        styleNumber: "Con números",
+        styleUnderscore: "Con guiones bajos",
+        styleProfessional: "Profesional",
+        generateUsername: "Generar nombre de usuario",
+        copyUsername: "Copiar nombre de usuario",
+        usernameHistory: "Historial de nombres de usuario (Últimos 5)",
+        genderSelection: "Género:",
+        masculine: "Masculino",
+        feminine: "Femenino"
       }
     };
 
@@ -547,8 +715,21 @@
       // Update title
       document.querySelector('h1').textContent = t.title;
       
+      // Show/hide gender selection based on language
+      const genderSelection = document.getElementById('genderSelection');
+      if (genderSelection) {
+        genderSelection.style.display = lang === 'es' ? 'flex' : 'none';
+      }
+      
       renderHistory();
+      renderUsernameHistory();
       refreshPassword();
+      
+      // If currently on username tab, refresh username with new language
+      const usernameTabContent = document.getElementById('usernameTabContent');
+      if (usernameTabContent && usernameTabContent.style.display !== 'none') {
+        refreshUsername();
+      }
     }
 
     function refreshPassword() {
@@ -584,6 +765,186 @@
       passwordField.style.height = '0px';
       const scrollHeight = passwordField.scrollHeight;
       passwordField.style.height = scrollHeight + 'px';
+    }
+
+    // Username generation functions
+    let usernameHistory = [];
+
+    function generateUsername(length, style) {
+      length = Math.max(3, Math.min(50, length));
+      let username = '';
+
+      // Get word lists for current language
+      const currentWords = wordsByLanguage[currentLanguage];
+      let adjectives, nouns;
+      
+      if (currentLanguage === 'es') {
+        // For Spanish, use gender-specific adjectives and nouns
+        const selectedGender = document.querySelector('input[name="gender"]:checked')?.value || 'masculine';
+        adjectives = selectedGender === 'feminine' ? currentWords.adjectivesFeminine : currentWords.adjectivesMasculine;
+        nouns = selectedGender === 'feminine' ? currentWords.nounsFeminine : currentWords.nounsMasculine;
+      } else {
+        // For English, use regular adjectives and nouns
+        adjectives = currentWords.adjectives;
+        nouns = currentWords.nouns;
+      }
+
+      switch(style) {
+        case 'simple': {
+          // Build username by combining words with correct language order
+          const adj = adjectives[randInt(adjectives.length)];
+          const noun = nouns[randInt(nouns.length)];
+          
+          // Spanish: noun + adjective, English: adjective + noun
+          username = currentLanguage === 'es' ? noun + adj : adj + noun;
+          
+          // If too short, add numbers; if too long, truncate
+          if (username.length < length) {
+            username += Math.floor(Math.random() * 100);
+          }
+          break;
+        }
+        case 'number': {
+          const adj = adjectives[randInt(adjectives.length)];
+          const noun = nouns[randInt(nouns.length)];
+          
+          // Spanish: noun + adjective, English: adjective + noun
+          let base = currentLanguage === 'es' ? noun + adj : adj + noun;
+          const num = randInt(100);
+          username = base + num;
+          
+          // Adjust to target length
+          if (username.length < length) {
+            username += Math.floor(Math.random() * 1000);
+          }
+          break;
+        }
+        case 'underscore': {
+          const adj = adjectives[randInt(adjectives.length)];
+          const noun = nouns[randInt(nouns.length)];
+          
+          // Spanish: noun + adjective, English: adjective + noun
+          if (currentLanguage === 'es') {
+            username = noun + '_' + adj + randInt(10);
+          } else {
+            username = adj + '_' + noun + randInt(10);
+          }
+          
+          // Adjust to target length
+          if (username.length < length) {
+            username += randInt(100);
+          }
+          break;
+        }
+        case 'professional': {
+          // Professional style: clean, neutral usernames
+          const neutralTerms = currentLanguage === 'en'
+            ? ['alpha', 'beta', 'gamma', 'delta', 'echo', 'nova', 'prime', 'core', 'edge', 'flex']
+            : ['alfa', 'beta', 'gama', 'delta', 'eco', 'nova', 'primo', 'nucleo', 'borde', 'flex'];
+          
+          const concepts = currentLanguage === 'en'
+            ? ['wave', 'point', 'link', 'path', 'zone', 'base', 'node', 'axis', 'grid', 'flow']
+            : ['onda', 'punto', 'enlace', 'ruta', 'zona', 'base', 'nodo', 'eje', 'red', 'flujo'];
+          
+          const term = neutralTerms[randInt(neutralTerms.length)];
+          const concept = concepts[randInt(concepts.length)];
+          const num = 100 + randInt(900); // 100-999
+          
+          // Different clean formats
+          const formats = [
+            term + concept,
+            term + num,
+            concept + num,
+            term + concept + (num % 100),
+            term + (num % 100),
+            concept + (num % 100)
+          ];
+          
+          username = formats[randInt(formats.length)];
+          break;
+        }
+      }
+
+      return username.slice(0, length);
+    }
+
+    function updateUsernameHistory(username) {
+      if (!usernameHistory.includes(username)) {
+        usernameHistory.unshift(username);
+        if (usernameHistory.length > 5) {
+          usernameHistory.pop();
+        }
+      }
+    }
+
+    function renderUsernameHistory() {
+      const historyDiv = document.getElementById('usernameHistoryList');
+      if (!historyDiv) return;
+      historyDiv.innerHTML = '';
+      usernameHistory.forEach(username => {
+        const item = document.createElement('div');
+        item.className = 'history-item';
+        const copyBtn = document.createElement('button');
+        copyBtn.className = 'history-copy-btn';
+        copyBtn.textContent = translations[currentLanguage].copyUsername;
+        copyBtn.addEventListener('click', async () => {
+          try {
+            await navigator.clipboard.writeText(username);
+            copyBtn.textContent = translations[currentLanguage].copied;
+            setTimeout(() => (copyBtn.textContent = translations[currentLanguage].copyUsername), 1400);
+          } catch {
+            copyBtn.select();
+            document.execCommand('copy');
+            copyBtn.textContent = translations[currentLanguage].copied;
+            setTimeout(() => (copyBtn.textContent = translations[currentLanguage].copyUsername), 1400);
+          }
+        });
+        item.innerHTML = `<span>${username}</span>`;
+        item.appendChild(copyBtn);
+        historyDiv.appendChild(item);
+      });
+    }
+
+    // Tab switching
+    function switchTab(tabName) {
+      const passwordTab = document.getElementById('passwordTab');
+      const usernameTab = document.getElementById('usernameTab');
+      const passwordContent = document.getElementById('passwordTabContent');
+      const usernameContent = document.getElementById('usernameTabContent');
+
+      if (tabName === 'password') {
+        passwordTab.classList.add('tab-active');
+        usernameTab.classList.remove('tab-active');
+        passwordTab.style.borderBottomColor = '#0b66c3';
+        passwordTab.style.color = '#0b66c3';
+        usernameTab.style.borderBottomColor = 'transparent';
+        usernameTab.style.color = '#666';
+        passwordContent.style.display = 'block';
+        usernameContent.style.display = 'none';
+        document.getElementById('passwordFooter').style.display = 'block';
+        document.getElementById('strengthLabelContainer').style.display = 'block';
+        document.getElementById('passwordHistorySection').style.display = 'block';
+      } else {
+        usernameTab.classList.add('tab-active');
+        passwordTab.classList.remove('tab-active');
+        usernameTab.style.borderBottomColor = '#0b66c3';
+        usernameTab.style.color = '#0b66c3';
+        passwordTab.style.borderBottomColor = 'transparent';
+        passwordTab.style.color = '#666';
+        passwordContent.style.display = 'none';
+        usernameContent.style.display = 'block';
+        document.getElementById('passwordFooter').style.display = 'none';
+        document.getElementById('strengthLabelContainer').style.display = 'none';
+        document.getElementById('passwordHistorySection').style.display = 'none';
+        refreshUsername();
+      }
+    }
+
+    function refreshUsername() {
+      const length = Math.max(3, Math.min(50, Number(document.getElementById('usernameLengthInput').value || 12)));
+      const style = document.querySelector('input[name="username-style"]:checked').value;
+      const username = generateUsername(length, style);
+      document.getElementById('usernameField').value = username;
     }
 
     // Event listeners
@@ -622,6 +983,57 @@
         document.execCommand('copy');
         copyBtn.textContent = translations[currentLanguage].copied;
         setTimeout(() => (copyBtn.textContent = translations[currentLanguage].copy), 1400);
+      }
+    });
+
+    // Tab switching listeners
+    document.getElementById('passwordTab').addEventListener('click', () => switchTab('password'));
+    document.getElementById('usernameTab').addEventListener('click', () => switchTab('username'));
+
+    // Username event listeners
+    const usernameLengthInput = document.getElementById('usernameLengthInput');
+    const usernameLengthRange = document.getElementById('usernameLengthRange');
+    const refreshUsernameBtn = document.getElementById('refreshUsernameBtn');
+    const copyUsernameBtn = document.getElementById('copyUsernameBtn');
+    const clearUsernameHistoryBtn = document.getElementById('clearUsernameHistoryBtn');
+    const usernameStyleRadios = document.querySelectorAll('input[name="username-style"]');
+    const genderRadios = document.querySelectorAll('input[name="gender"]');
+
+    usernameLengthRange.addEventListener('input', () => {
+      usernameLengthInput.value = usernameLengthRange.value;
+      refreshUsername();
+    });
+    usernameLengthInput.addEventListener('change', () => {
+      let val = Math.max(3, Math.min(50, Number(usernameLengthInput.value || 12)));
+      usernameLengthRange.value = val;
+      usernameLengthInput.value = val;
+      refreshUsername();
+    });
+    refreshUsernameBtn.addEventListener('click', refreshUsername);
+    usernameStyleRadios.forEach(radio => {
+      radio.addEventListener('change', refreshUsername);
+    });
+    genderRadios.forEach(radio => {
+      radio.addEventListener('change', refreshUsername);
+    });
+    clearUsernameHistoryBtn.addEventListener('click', () => {
+      usernameHistory = [];
+      renderUsernameHistory();
+    });
+    copyUsernameBtn.addEventListener('click', async () => {
+      const txt = document.getElementById('usernameField').value;
+      if (!txt) return;
+      updateUsernameHistory(txt);
+      renderUsernameHistory();
+      try {
+        await navigator.clipboard.writeText(txt);
+        copyUsernameBtn.textContent = translations[currentLanguage].copied;
+        setTimeout(() => (copyUsernameBtn.textContent = translations[currentLanguage].copyUsername), 1400);
+      } catch {
+        document.getElementById('usernameField').select();
+        document.execCommand('copy');
+        copyUsernameBtn.textContent = translations[currentLanguage].copied;
+        setTimeout(() => (copyUsernameBtn.textContent = translations[currentLanguage].copyUsername), 1400);
       }
     });
 
